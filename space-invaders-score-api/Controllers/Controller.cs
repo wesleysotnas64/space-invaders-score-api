@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.AspNetCore.Mvc;
+using space_invaders_score_api.DBContext;
 using space_invaders_score_api.Entities;
 using space_invaders_score_api.Utilities;
 
@@ -23,12 +24,11 @@ namespace space_invaders_score_api.Controllers
             try
             {
                 //Vai ao banco e retorna os players
-                List<Player> players = [];
+                DBManager db = new();
 
-                players.Add(new Player() { Name = "Pixel Man", Score = 10530 });
-                players.Add(new Player() { Name = "Bug Boy", Score = 120450 });
+                List<Player> players = db.GetPlayerList();
 
-                return Ok(players.OrderByDescending(player => player.Score));
+                return Ok(players);
             }
             catch
             {
@@ -45,9 +45,19 @@ namespace space_invaders_score_api.Controllers
 
             if (validation.Result == false) return BadRequest(validation.Message);
 
-            //Aqui adiciona o score atual
+            Player player = new();
+            player.Name = submitScoreRequest.Name;
+            player.Score = submitScoreRequest.Score;
 
-            return Ok(submitScoreRequest);
+            try
+            {
+                new DBManager().AddPlayer(player);
+                return Ok(player);
+            }
+            catch
+            {
+                return BadRequest("Error when add database.");
+            }
         }
     }
 }
